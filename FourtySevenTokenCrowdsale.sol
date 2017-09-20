@@ -231,9 +231,9 @@ contract MintableToken is StandardToken, Ownable {
 }
 
 
-contract FSToken is MintableToken {
+contract FSBToken is MintableToken {
   string public name = "Forty Seven Token";
-  string public symbol = "FST";
+  string public symbol = "FSBT";
   uint256 public decimals = 18;
 }
 
@@ -329,7 +329,7 @@ contract FourtySevenTokenCrowdsale {
   // creates the token to be sold.
   // override this method to have crowdsale of a specific mintable token.
   function createTokenContract() internal returns (MintableToken) {
-    return new FSToken();
+    return new FSBToken();
   }
 
   // fallback function can be used to buy tokens
