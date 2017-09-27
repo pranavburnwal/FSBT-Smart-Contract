@@ -1,4 +1,4 @@
-## FourtySevenTokenCrowdsale.sol
+## FortySevenTokenCrowdsale.sol
 
 This smart contract is written by *Fourty Seven* based on Zepplin-solidity.
 
@@ -25,7 +25,7 @@ This smart contract is specially designed to provide a limited emision of ERC20 
 
 - *uint256* `preSaleStartTime`  start timestamp (in seconds) when pre-investments are allowed (inclusive)
 - *uint256* `preSaleEndTime`    end timestamp (in seconds) when pre-investments are allowed (inclusive)
-- *uint256* `preSaleTokenCap`   maximum amout of tokens that can be minted during pre-sale period
+- *uint256* `preSaleTokenCap`   maximum amount of tokens that can be minted during pre-sale period
 - *uint256* `mainSaleStartTime` start timestamp (in seconds) when main investments are allowed (inclusive)
 - *uint256* `mainSaleEndTime`   end timestamp (in seconds) when main investments are allowed (inclusive)
 - *uint256* `mainSaleTokenCap`  maximum amout of tokens that can be minted during main-sale period
@@ -55,5 +55,5 @@ The contract creator are allowed to finalize sales with the public method `final
 
 ## Important
 
-The code of the contract as well as this readme.md will be updated few times before the begining of the ICO.
-We are focused of deep audit and testing, that may require minor changes.
+The code of the contract as well as this readme.md will be updated few times before the beginning of the ICO.
+We are focused on deep audit and testing, that may require minor changes.
