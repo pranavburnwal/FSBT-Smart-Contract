@@ -27,10 +27,10 @@ This smart contract is specially designed to provide a limited emision of ERC20 
 
 - *uint256* `preSaleStartTime`  start timestamp (in seconds) when pre-investments are allowed (inclusive)
 - *uint256* `preSaleEndTime`    end timestamp (in seconds) when pre-investments are allowed (inclusive)
-- *uint256* `preSaleTokenCap`   maximum amount of tokens that can be minted during pre-sale period
+- *uint256* `preSaleWeiCap`     maximum amount of Wei that can be minted during pre-sale period
 - *uint256* `mainSaleStartTime` start timestamp (in seconds) when main investments are allowed (inclusive)
 - *uint256* `mainSaleEndTime`   end timestamp (in seconds) when main investments are allowed (inclusive)
-- *uint256* `mainSaleTokenCap`  maximum amout of tokens that can be minted during main-sale period
+- *uint256* `mainSaleWeiCap`    maximum amout of Wei that can be minted during main-sale period
 - *address* `wallet`            address where the contract collects the ether, as well as where 10% of owners FSBT tokens will be collected after crowdsale finalization
 - *uint256* `rate`              how many token units a buyer gets per 1 wei
 
