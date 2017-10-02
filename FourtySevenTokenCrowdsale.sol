@@ -134,6 +134,7 @@ contract Ownable {
  */
 contract StandardToken is ERC20, BasicToken {
 
+
   mapping (address => mapping (address => uint256)) allowed;
 
 
@@ -232,7 +233,7 @@ contract MintableToken is StandardToken, Ownable {
 
 
 contract FSBToken is MintableToken {
-  string public name = "Forty Seven Token";
+  string public name = "Forty Seven Bank Token";
   string public symbol = "FSBT";
   uint256 public decimals = 18;
 }
@@ -247,11 +248,8 @@ contract FSBToken is MintableToken {
  * pre-sale and main sale periods both have caps defined in tokens
  */
 
-contract FourtySevenTokenCrowdsale {
+contract FourtySevenTokenCrowdsale is Ownable {
   using SafeMath for uint256;
-
-  // original contract creator
-  address public contractCreator;
 
   // true for finalised crowdsale
   bool public isFinalised;
@@ -267,9 +265,9 @@ contract FourtySevenTokenCrowdsale {
   uint256 public mainSaleStartTime;
   uint256 public mainSaleEndTime;
 
-  // maximum amout of token that can be minted during pre-sale and main sale
-  uint256 public preSaleTokenCap;
-  uint256 public mainSaleTokenCap;
+  // maximum amout of wei for pre-sale and main sale
+  uint256 public preSaleWeiCap;
+  uint256 public mainSaleWeiCap;
 
   // address where funds are collected
   address public wallet;
@@ -279,6 +277,23 @@ contract FourtySevenTokenCrowdsale {
 
   // amount of raised money in wei
   uint256 public weiRaised;
+
+  struct TimeBonus {
+    uint256 bonusPeriodEndTime;
+    uint percent;
+    bool isAmountDependent;
+  }
+
+  struct AmountBonus {
+    uint256 amount;
+    uint percent;
+  }
+
+  TimeBonus[] public timeBonuses;
+  AmountBonus[] public amountBonuses;
+
+  uint preSaleBonus;
+  uint256 preSaleMinimumWei;
 
   /**
    * event for token purchase logging
@@ -290,9 +305,7 @@ contract FourtySevenTokenCrowdsale {
   event TokenPurchase(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
   event FinalisedCrowdsale(uint256 totalSupply, uint256 minterBenefit);
 
-  function FourtySevenTokenCrowdsale(uint256 _preSaleStartTime, uint256 _preSaleEndTime, uint256 _preSaleTokenCap, uint256 _mainSaleStartTime, uint256 _mainSaleEndTime, uint256 _mainSaleTokenCap, uint256 _rate, address _wallet) {
-
-    contractCreator = msg.sender;
+  function FourtySevenTokenCrowdsale(uint256 _preSaleStartTime, uint256 _preSaleEndTime, uint256 _preSaleWeiCap, uint256 _mainSaleStartTime, uint256 _mainSaleEndTime, uint256 _mainSaleWeiCap, uint256 _rate, address _wallet) {
 
     // can't start pre-sale in the past
     require(_preSaleStartTime >= now);
@@ -310,17 +323,30 @@ contract FourtySevenTokenCrowdsale {
     require(_mainSaleStartTime < _mainSaleEndTime);
 
     require(_rate > 0);
-    require(_preSaleTokenCap > 0);
-    require(_mainSaleTokenCap > 0);
+    require(_preSaleWeiCap > 0);
+    require(_mainSaleWeiCap > 0);
     require(_wallet != 0x0);
+
+    preSaleBonus = 30;
+    preSaleMinimumWei = 4700000000000000000;
+
+    timeBonuses.push(TimeBonus(86400 * 3, 15, false));
+    timeBonuses.push(TimeBonus(86400 * 7, 10, false));
+    timeBonuses.push(TimeBonus(86400 * 14, 5, false));
+    timeBonuses.push(TimeBonus(86400 * 28, 0, true));
+
+    amountBonuses.push(AmountBonus(25000 ether, 15));
+    amountBonuses.push(AmountBonus(5000 ether, 10));
+    amountBonuses.push(AmountBonus(2500 ether, 5));
+    amountBonuses.push(AmountBonus(500 ether, 2));
 
     token = createTokenContract();
     preSaleStartTime = _preSaleStartTime;
     preSaleEndTime = _preSaleEndTime;
-    preSaleTokenCap = _preSaleTokenCap;
+    preSaleWeiCap = _preSaleWeiCap;
     mainSaleStartTime = _mainSaleStartTime;
     mainSaleEndTime = _mainSaleEndTime;
-    mainSaleTokenCap = _mainSaleTokenCap;
+    mainSaleWeiCap = _mainSaleWeiCap;
     rate = _rate;
     wallet = _wallet;
     isFinalised = false;
@@ -349,18 +375,21 @@ contract FourtySevenTokenCrowdsale {
     require(withinPreSalePeriod || withinMainSalePeriod);
 
     uint256 weiAmount = msg.value;
+    uint256 expectedWeiRaised = weiRaised.add(weiAmount);
+
+    if (withinPreSalePeriod) {
+      require(weiAmount >= preSaleMinimumWei);
+      require(expectedWeiRaised <= preSaleWeiCap);
+    }
+
+    if (withinMainSalePeriod) {
+      require(expectedWeiRaised <= mainSaleWeiCap);
+    }
 
     // calculate token amount to be created
     uint256 tokens = weiAmount.mul(rate);
-
     // add bonus to tokens depends on the period
     uint256 bonusedTokens = applyBonus(tokens);
-
-    uint256 totalSupply = token.totalSupply();
-    uint256 expectedTotalSupply = totalSupply.add(bonusedTokens);
-
-    if (withinPreSalePeriod) {require(expectedTotalSupply <= preSaleTokenCap);}
-    if (withinMainSalePeriod) {require(expectedTotalSupply <= mainSaleTokenCap);}
 
     // update state
     weiRaised = weiRaised.add(weiAmount);
@@ -374,8 +403,7 @@ contract FourtySevenTokenCrowdsale {
   // take totalSupply as 90% and mint 10% more to specified owner's wallet
   // then stop minting forever
 
-  function finaliseCrowdsale() public returns (bool) {
-    require(contractCreator == msg.sender);
+  function finaliseCrowdsale() public onlyOwner returns (bool) {
     require(!isFinalised);
     uint256 totalSupply = token.totalSupply();
     uint256 minterBenefit = totalSupply.mul(10).div(90);
@@ -383,6 +411,24 @@ contract FourtySevenTokenCrowdsale {
     token.finishMinting();
     FinalisedCrowdsale(totalSupply, minterBenefit);
     isFinalised = true;
+    return true;
+  }
+
+  // set new dates for pre-salev (emergency case)
+  function setPreSaleDates(uint256 _preSaleStartTime, uint256 _preSaleEndTime) public onlyOwner returns (bool) {
+    require(!isFinalised);
+    require(_preSaleStartTime < _preSaleEndTime);
+    preSaleStartTime = _preSaleStartTime;
+    preSaleEndTime = _preSaleEndTime;
+    return true;
+  }
+
+  // set new dates for main-sale (emergency case)
+  function setMainSaleDates(uint256 _mainSaleStartTime, uint256 _mainSaleEndTime) public onlyOwner returns (bool) {
+    require(!isFinalised);
+    require(_mainSaleStartTime < _mainSaleEndTime);
+    mainSaleStartTime = _mainSaleStartTime;
+    mainSaleEndTime = _mainSaleEndTime;
     return true;
   }
 
@@ -401,35 +447,22 @@ contract FourtySevenTokenCrowdsale {
     return now > preSaleEndTime;
   }
 
-  function getBonusPercent(uint256 tokens) internal constant returns (uint256 percent) {
-    // production
-    uint mainSalePeriod1 = 259200;  // 3days
-    uint mainSalePeriod2 = 604800;  // 7
-    uint mainSalePeriod3 = 1209600; // 14
-    uint mainSalePeriod4 = 2419200; // 28
-
-    uint mainSalePeriod4amount1 = 2500 ether; //15
-    uint mainSalePeriod4amount2 = 500 ether;  //10
-    uint mainSalePeriod4amount3 = 100 ether;  //5
-    uint mainSalePeriod4amount4 = 10 ether;   //2.5
-
+  function getBonusPercent(uint256 tokens) public constant returns (uint256 percent) {
     bool isPreSale = now >= preSaleStartTime && now <= preSaleEndTime;
-    bool isMainSale = now >= mainSaleStartTime && now <= mainSaleEndTime;
-
     if (isPreSale) {
-      return 40; // 40% bonus during pre-sale
-    } else if (isMainSale) {
+      return preSaleBonus;
+    } else {
       uint diffInSeconds = now - mainSaleStartTime;
-      // main sale bonuses
-      if (diffInSeconds <= mainSalePeriod1) {return 25;}                                    // 25% bonus during 1st main sale period
-      if (diffInSeconds > mainSalePeriod1 && diffInSeconds <= mainSalePeriod2) {return 15;} // 15% bonus during 2nd main sale period
-      if (diffInSeconds > mainSalePeriod2 && diffInSeconds <= mainSalePeriod3) {return 10;} // 10% bonus during 3rd main sale period
-      if (diffInSeconds > mainSalePeriod3 && diffInSeconds <= mainSalePeriod4) {
-        // main sale 4th period (bonus for the amount)
-        if (tokens >= mainSalePeriod4amount1) {return 15;}
-        if (tokens >= mainSalePeriod4amount2) {return 10;}
-        if (tokens >= mainSalePeriod4amount3) {return 5;}
-        if (tokens >= mainSalePeriod4amount4) {return 2;}
+      for (uint i = 0; i < timeBonuses.length; i++) {
+        if (diffInSeconds <= timeBonuses[i].bonusPeriodEndTime && !timeBonuses[i].isAmountDependent) {
+          return timeBonuses[i].percent;
+        } else if (timeBonuses[i].isAmountDependent) {
+          for (uint j = 0; j < amountBonuses.length; j++) {
+            if (tokens >= amountBonuses[j].amount) {
+              return amountBonuses[j].percent;
+            }
+          }
+        }
       }
     }
     return 0;
