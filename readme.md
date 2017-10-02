@@ -13,7 +13,7 @@ This smart contract is specially designed to provide a limited emision of ERC20 
 ## ERC20 FSBT Token Contract (based on Zepplin-solidity MintableToken)
 
   - Contract name **FSBToken**
-  - Name **Forty Seven Token**
+  - Name **Forty Seven Bank Token**
   - Symbol **FSBT**
   - Decimals **18**
 
@@ -42,8 +42,8 @@ There are 2 ways that allow to buy tokens
 ### Bonuses (example)
 
 The contract has a `rate` of 200 tokens per 1 ether.
-You are sending to the contract the amount of 1 ether during pre-sale period (expected 40% bonus).
-You'll get `( 1 * 200 ) * (1 + 40 / 100) = 280 FSBT`
+You are sending to the contract the amount of 10 Ether during pre-sale period (expected 30% bonus).
+You'll get `( 10 * 200 ) * ((100 + 30) / 100) = 2600 FSBT`
 
 ### Finalisation
 
@@ -57,3 +57,5 @@ The contract creator are allowed to finalize sales with the public method `final
 
 The code of the contract as well as this readme.md will be updated few times before the beginning of the ICO.
 We are focused on deep audit and testing, that may require minor changes.
+
+-----------
