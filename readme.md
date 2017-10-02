@@ -8,6 +8,9 @@ Zepplin-solidity is following the best practicas of writing smart contracts(http
 
 This smart contract is specially designed to provide a limited emision of ERC20 (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md) standard tokens named **FSBT** (**Fourty Seven Token**) during pre-sale and main-sale periods of an ICO.
 
+[ICO Scheme](https://bitbucket.org/fortysevenbank/fsbt-smart-contract/raw/master/ico-scheme.jpg)
+
+
 -------
 
 ## ERC20 FSBT Token Contract (based on Zepplin-solidity MintableToken)
