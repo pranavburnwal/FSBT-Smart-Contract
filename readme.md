@@ -31,8 +31,9 @@ This smart contract is specially designed to provide a limited emision of ERC20 
 - *uint256* `mainSaleStartTime` start timestamp (in seconds) when main investments are allowed (inclusive)
 - *uint256* `mainSaleEndTime`   end timestamp (in seconds) when main investments are allowed (inclusive)
 - *uint256* `mainSaleWeiCap`    maximum amout of Wei that can be minted during main-sale period
-- *address* `wallet`            address where the contract collects the ether, as well as where 10% of owners FSBT tokens will be collected after crowdsale finalization
 - *uint256* `rate`              how many token units a buyer gets per 1 wei
+- *address* `wallet`            address of multisig, where the contract collects the ether
+- *address* `tokenWallet`       address where the contract collects 10% of owners FSBT tokens will be collected after crowdsale finalization
 
 ### 2 Ways to buy tokens
 
